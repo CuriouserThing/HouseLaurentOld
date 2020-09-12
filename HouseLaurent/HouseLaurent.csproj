@@ -6,6 +6,11 @@
     <Version>0.1.0</Version>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Bjerg" Version="0.1.0" />
     <PackageReference Include="Unterwalden" Version="0.1.0" />
