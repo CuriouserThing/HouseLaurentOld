@@ -1,15 +1,16 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace HouseLaurent.Challonge
 {
     /// <summary>
-    /// A context representing a single Challonge account with the tools to create and run tournaments using that account. Some methods are 1:1 bindings to Challonge APIs, while others are abstract connections to Challonge. Either way, each method returns a <see cref="ChallongeResponse"/>.
+    /// A context representing a single Challonge account with the tools to create and run tournaments using that account. Some methods are 1:1 bindings to Challonge APIs, while others are abstract connections to Challonge. Either way, each method asynchronously returns a <see cref="ChallongeResponse"/>.
     /// </summary>
     internal interface IChallongeContext
     {
         #region Account APIs
 
-        ChallongeResponse<ChallongeTournament> CreateTournament(ChallongeTournamentDescriptor tournamentDesc);
+        Task<ChallongeResponse<ChallongeTournament>> CreateTournament(ChallongeTournamentDescriptor tournamentDesc);
 
         /// <summary>
         /// A tool for syncing the state of a single Challonge tournament (as well as the states of all its associated participants and matches) between HouseLaurent (local) and Challonge (remote).
@@ -28,27 +29,27 @@ namespace HouseLaurent.Challonge
         /// </list>
         /// The context MUST return an error response if it can't successfully push one or more state changes. Local and remote should only be out-of-sync if something went wrong: a 5xx error, a human manually updating the tournament on challonge.com, a HouseLaurent bug, etc.
         /// </remarks>
-        ChallongeResponse<ChallongeSyncResult> SyncTournament(ChallongeTournament tournament, IReadOnlyList<ChallongeParticipant> participants, IReadOnlyList<ChallongeMatch> matches);
+        Task<ChallongeResponse<ChallongeSyncResult>> SyncTournament(ChallongeTournament tournament, IReadOnlyList<ChallongeParticipant> participants, IReadOnlyList<ChallongeMatch> matches);
 
         #endregion
 
         #region Tournament APIs
 
-        ChallongeResponse<ChallongeTournament> GetTournament(int tournamentId);
+        Task<ChallongeResponse<ChallongeTournament>> GetTournament(int tournamentId);
 
-        ChallongeResponse UpdateTournament(int tournamentId, ChallongeTournamentDescriptor tournamentDesc);
+        Task<ChallongeResponse> UpdateTournament(int tournamentId, ChallongeTournamentDescriptor tournamentDesc);
 
-        ChallongeResponse<IReadOnlyList<ChallongeParticipant>> GetParticipants(int tournamentId);
+        Task<ChallongeResponse<IReadOnlyList<ChallongeParticipant>>> GetParticipants(int tournamentId);
 
-        ChallongeResponse<IReadOnlyList<ChallongeMatch>> GetMatches(int tournamentId);
+        Task<ChallongeResponse<IReadOnlyList<ChallongeMatch>>> GetMatches(int tournamentId);
 
-        ChallongeResponse StartTournament(int tournamentId);
+        Task<ChallongeResponse> StartTournament(int tournamentId);
 
-        ChallongeResponse<ChallongeParticipant> RegisterPlayer(int tournamentId, ChallongeParticipantDescriptor participantDesc);
+        Task<ChallongeResponse<ChallongeParticipant>> RegisterPlayer(int tournamentId, ChallongeParticipantDescriptor participantDesc);
 
-        ChallongeResponse<IReadOnlyList<ChallongeParticipant>> RegisterPlayers(int tournamentId, IReadOnlyList<ChallongeParticipantDescriptor> participantDescs);
+        Task<ChallongeResponse<IReadOnlyList<ChallongeParticipant>>> RegisterPlayers(int tournamentId, IReadOnlyList<ChallongeParticipantDescriptor> participantDescs);
 
-        ChallongeResponse ResetTournament(int tournamentId);
+        Task<ChallongeResponse> ResetTournament(int tournamentId);
 
         /// <summary>
         /// Finalize all match scores from the ongoing round, thereby prompting Challonge to generate the next round's matches.
@@ -62,38 +63,38 @@ namespace HouseLaurent.Challonge
         /// A post-round drop signifies that the players played at least one game in the match, before one player or both players dropped. It may instead signify that a player with a bye dropped at any time during the round.<br/>
         /// Use <see cref="UpdateMatch"/> instead to live-update game scores.
         /// </remarks>
-        ChallongeResponse FinalizeRound(int tournamentId, IReadOnlyList<ChallongeMatch> roundMatches, IReadOnlyList<int> preRoundDrops, IReadOnlyList<int> postRoundDrops);
+        Task<ChallongeResponse> FinalizeRound(int tournamentId, IReadOnlyList<ChallongeMatch> roundMatches, IReadOnlyList<int> preRoundDrops, IReadOnlyList<int> postRoundDrops);
 
-        ChallongeResponse FinalizeTournament(int tournamentId);
+        Task<ChallongeResponse> FinalizeTournament(int tournamentId);
 
         #endregion
 
         #region Participant APIs
 
-        ChallongeResponse<ChallongeParticipant> GetParticipant(int tournamentId, int participantId);
+        Task<ChallongeResponse<ChallongeParticipant>> GetParticipant(int tournamentId, int participantId);
 
-        ChallongeResponse UpdateParticipant(int tournamentId, int participantId, ChallongeParticipantDescriptor participantDesc);
+        Task<ChallongeResponse> UpdateParticipant(int tournamentId, int participantId, ChallongeParticipantDescriptor participantDesc);
 
-        ChallongeResponse UnregisterParticipant(int tournamentId, int participantId);
+        Task<ChallongeResponse> UnregisterParticipant(int tournamentId, int participantId);
 
-        ChallongeResponse CheckInParticipant(int tournamentId, int participantId);
+        Task<ChallongeResponse> CheckInParticipant(int tournamentId, int participantId);
 
-        ChallongeResponse UnCheckInParticipant(int tournamentId, int participantId);
+        Task<ChallongeResponse> UnCheckInParticipant(int tournamentId, int participantId);
 
         #endregion
 
         #region Match APIs
 
-        ChallongeResponse<ChallongeMatch> GetMatch(int tournamentId, int matchId);
+        Task<ChallongeResponse<ChallongeMatch>> GetMatch(int tournamentId, int matchId);
 
-        ChallongeResponse MarkMatchUnderway(int tournamentId, int matchId);
+        Task<ChallongeResponse> MarkMatchUnderway(int tournamentId, int matchId);
 
-        ChallongeResponse UnmarkMatchUnderway(int tournamentId, int matchId);
+        Task<ChallongeResponse> UnmarkMatchUnderway(int tournamentId, int matchId);
 
         /// <summary>
         /// Update a match's score without setting the winner, which is instead the responsibility of <see cref="FinalizeRound"/>.
         /// </summary>
-        ChallongeResponse UpdateMatch(int tournamentId, int matchId, int playerAWins, int playerBWins);
+        Task<ChallongeResponse> UpdateMatch(int tournamentId, int matchId, int playerAWins, int playerBWins);
 
         #endregion
     }
